@@ -58,9 +58,10 @@ def main():
     cards = createCards()
     for player in players:
         #Turn of player: 1.Bet 2.Pick 3.Points
-        moreCards = 1
+        moreCards, counter = 1, 0
         print('\n---',player.name,'is playing now', '---\n',sep=' ')
         while moreCards in positiveAnswers:
+            counter += 1
             result = pickCard(cards)
             cards = result['cards']
             card = result['card']
@@ -69,13 +70,16 @@ def main():
             if points > 21:
                 print(player.name,'has lost', sep=' ')
                 break
+            elif points == 21 and counter == 2:
+                print(player.name,'has a Blackjack', sep=' ')
+                break
             elif points == 21:
-                print(player.name,'has blackjack', sep=' ')
+                print('You have', points,'points', sep=' ')
                 break
             else:
                 print('You have', points,'points', sep=' ')
             moreCards = input('Do you want another card? ')
     #Ckeck who won
-    
+
 
 main()
