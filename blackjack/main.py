@@ -14,6 +14,7 @@ class Player():
         self.name = name
         self.deck = []
         self.balance = balance
+        self.state = 'playing'
 
     def addCard(self,card):
         self.deck += [card]
@@ -29,6 +30,9 @@ class Player():
             else:
                 points += i
         return  points
+
+    def changeState(self,state):
+        self.state = state
     #Methods for adding and withdrawing balance
 
 def createCards():
@@ -43,11 +47,28 @@ def pickCard(cards):
 
 def createPlayer():
     name = input('Introduce your name: ')
-    player = Player(name, balance=10)
+    player = Player(name.capitalize(), balance=10)
     return player
+
+def checkPoints(points, counter, player):
+    if points > 21:
+        print(player.name,'has lost', sep=' ')
+        player.changeState('exceed')
+        return -1
+    elif points == 21 and counter == 2:
+        print(player.name,'has a Blackjack', sep=' ')
+        player.changeState('blackjack')
+        return -1
+    elif points == 21:
+        print('You have', points,'points', sep=' ')
+        return -1
+    else:
+        print('You have', points,'points', sep=' ')
+
 def main():
-    players=[]
+    players=[] #Store objects
     answer = 1
+    Dealer = Player('dealer', balance=100) #Create dealer
     while answer in positiveAnswers:
         players += [createPlayer()]
         print('There is/are', len(players),'player(s).','\n', sep=' ')
@@ -56,30 +77,38 @@ def main():
             break
         answer = input('Do you want to add another player? ')
     cards = createCards()
+
+    #Dealer starts taking a card face up
+    result = pickCard(cards)
+    cards = result['cards']
+    print('Dealer\'s card is:',result['card'],sep=' ')
+    points = Dealer.addCard(result['card'])
+
     for player in players:
-        #Turn of player: 1.Bet 2.Pick 3.Points
-        moreCards, counter = 1, 0
+        #Turn of player: 0.Two Cards 1.Bet 2.Pick 3.Points
+        counter = 2
         print('\n---',player.name,'is playing now', '---\n',sep=' ')
+        result = pickCard(cards)
+        cards = result['cards']
+        points = player.addCard(result['card'])
+        card1 = result['card']
+        result = pickCard(cards)
+        cards = result['cards']
+        points = player.addCard(result['card'])
+        print('Your cards are:',card1, 'and',result['card'],sep=' ')
+        if checkPoints(points, counter, player) == -1:
+            break
+        moreCards = input('Do you want another card? ')
         while moreCards in positiveAnswers:
+            print(cards)
             counter += 1
             result = pickCard(cards)
             cards = result['cards']
-            card = result['card']
-            print('Your card is:',card,sep=' ')
-            points = player.addCard(card)
-            if points > 21:
-                print(player.name,'has lost', sep=' ')
+            print('Your card is:',result['card'],sep=' ')
+            points = player.addCard(result['card'])
+            if checkPoints(points, counter, player) == -1:
                 break
-            elif points == 21 and counter == 2:
-                print(player.name,'has a Blackjack', sep=' ')
-                break
-            elif points == 21:
-                print('You have', points,'points', sep=' ')
-                break
-            else:
-                print('You have', points,'points', sep=' ')
             moreCards = input('Do you want another card? ')
     #Ckeck who won
-
 
 main()
