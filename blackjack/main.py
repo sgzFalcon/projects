@@ -65,6 +65,11 @@ def checkPoints(points, counter, player):
     else:
         print('You have', points,'points', sep=' ')
 
+def cardsName(card):
+    names = {1:'Ace',2:'Two',3:'Three',4:'Four',5:'Five', 6:'Six',7:'Seven',
+        8:'Eight', 9:'Nine', 10:'Ten', 11:'Jack',12:'Queen',13:'King'}
+    return names[card]
+
 def main():
     players=[] #Store objects
     answer = 1
@@ -81,7 +86,7 @@ def main():
     #Dealer starts taking a card face up
     result = pickCard(cards)
     cards = result['cards']
-    print('Dealer\'s card is:',result['card'],sep=' ')
+    print('\n','Dealer\'s card is:',cardsName(result['card']),sep=' ')
     points = Dealer.addCard(result['card'])
 
     for player in players:
@@ -95,20 +100,67 @@ def main():
         result = pickCard(cards)
         cards = result['cards']
         points = player.addCard(result['card'])
-        print('Your cards are:',card1, 'and',result['card'],sep=' ')
+        print('Your cards are:',cardsName(card1), 'and',
+            cardsName(result['card']),sep=' ')
         if checkPoints(points, counter, player) == -1:
-            break
+            continue
         moreCards = input('Do you want another card? ')
         while moreCards in positiveAnswers:
-            print(cards)
             counter += 1
             result = pickCard(cards)
             cards = result['cards']
-            print('Your card is:',result['card'],sep=' ')
+            print('Your card is:',cardsName(result['card']),sep=' ')
             points = player.addCard(result['card'])
             if checkPoints(points, counter, player) == -1:
                 break
             moreCards = input('Do you want another card? ')
-    #Ckeck who won
+    #Dealer finishes his hand
+    print('\n--- Dealer is playing now', '---\n',sep=' ')
+    situation = []
+    for player in players:
+        situation += [player.state]
+    print(situation)
+    if 'playing' not in situation and 'blackjack' not in situation:
+        print('Dealer has won')
+        #Add withdraws to every player
+    else:
+        result = pickCard(cards)
+        cards = result['cards']
+        print('Dealer\'s second card is:',cardsName(result['card']),sep=' ')
+        dealerspoints = Dealer.addCard(result['card'])
+        disposable = checkPoints(dealerspoints,2,Dealer)
+
+        if Dealer.state == 'blackjack':
+            print('Dealer has won with a Blackjack')
+            #Add withdraws to every player
+        elif 'playing' in situation:
+            while dealerspoints < 17:
+                result = pickCard(cards)
+                cards = result['cards']
+                print('Dealer\'s card is:',cardsName(result['card']),sep=' ')
+                dealerspoints = Dealer.addCard(result['card'])
+                if checkPoints(dealerspoints, counter, player) == -1:
+                    break
+
+            if dealerspoints <= 21:
+                for player in players:
+                    if dealerspoints > player.totalPoints():
+                        print('Dealer has won', player.name, sep=' ')
+                        #Add withdraws
+                    elif player.state == 'exceed':
+                        print('Dealer has won',player.name, sep=' ')
+                        #Add withdraws
+                    elif dealerspoints < player.totalPoints():
+                        print(player.name,'has won', Dealer.name, sep=' ')
+                        #Add withdraws
+                    else:
+                        print(player.name,'\'s bet is returned')
+
+            else:
+                print('Everybody win')
+                #Add withdraws
+        else:
+            print('Dealer has lost')
+            #Add withdraws
 
 main()
