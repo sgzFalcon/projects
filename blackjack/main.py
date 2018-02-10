@@ -60,10 +60,10 @@ def checkPoints(points, counter, player):
         player.changeState('blackjack')
         return -1
     elif points == 21:
-        print('You have', points,'points', sep=' ')
+        print(player.name, 'has', points,'points', sep=' ')
         return -1
     else:
-        print('You have', points,'points', sep=' ')
+        print(player.name, 'has', points,'points', sep=' ')
 
 def cardsName(card):
     names = {1:'Ace',2:'Two',3:'Three',4:'Four',5:'Five', 6:'Six',7:'Seven',
@@ -73,7 +73,7 @@ def cardsName(card):
 def main():
     players=[] #Store objects
     answer = 1
-    Dealer = Player('dealer', balance=100) #Create dealer
+    Dealer = Player('Dealer', balance=100) #Create dealer
     while answer in positiveAnswers:
         players += [createPlayer()]
         print('There is/are', len(players),'player(s).','\n', sep=' ')
@@ -119,7 +119,6 @@ def main():
     situation = []
     for player in players:
         situation += [player.state]
-    print(situation)
     if 'playing' not in situation and 'blackjack' not in situation:
         print('Dealer has won')
         #Add withdraws to every player
@@ -139,7 +138,7 @@ def main():
                 cards = result['cards']
                 print('Dealer\'s card is:',cardsName(result['card']),sep=' ')
                 dealerspoints = Dealer.addCard(result['card'])
-                if checkPoints(dealerspoints, counter, player) == -1:
+                if checkPoints(dealerspoints, counter, Dealer) == -1:
                     break
 
             if dealerspoints <= 21:
