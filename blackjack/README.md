@@ -10,6 +10,12 @@
 * ~~Name of cards (Jack, Queen, King and Ace)~~ (Done)
 * ~~Check who has won~~ (Done)
 * ~~Computer controlled dealer~~ (Done)
-* Track of bets (WIP)
+* ~~Track of bets~~ (Done)
 * Multigame support (i.e. play more than one game without recreate players) (TBD)
 * Computer controller player (TBD)
+
+## Known bugs
+=====
+* ~~Busted when a card was received after an Ace~~ (Solved)
+* Double Ace: When you received 2 Aces and have 21 points with just one of them
+  (WIP)
