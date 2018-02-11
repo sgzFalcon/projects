@@ -12,7 +12,8 @@
 * ~~Check who has won~~ (Done)
 * ~~Computer controlled dealer~~ (Done)
 * ~~Track of bets~~ (Done)
-* Multigame support (i.e. play more than one game without recreate players) (WIP)
+* ~~Multigame support (i.e. play more than one game without recreate players)~~
+  (Done)
 * Delete players without money in their account (TBD)
 * Computer controller player (TBD)
 
