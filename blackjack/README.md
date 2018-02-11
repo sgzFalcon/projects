@@ -2,7 +2,8 @@
 ======
 * Up to 6 players
 * Pick a random card from a deck of 52 cards and assign it to a player
-* Check points of a player
+* Players options: Hit, Stand and Double
+* Check points of a player against the dealer
 
 ## Thing to do
 =====
@@ -10,4 +11,5 @@
 * ~~Check who has won~~ (Done)
 * ~~Computer controlled dealer~~ (Done)
 * Track of bets (WIP)
+* Multigame support (i.e. play more than one game without recreate players) (TBD)
 * Computer controller player (TBD)
