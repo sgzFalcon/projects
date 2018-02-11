@@ -25,13 +25,17 @@ class Player():
 
     def totalPoints(self):
         points = 0
+        ace = 0
         for i in sorted(self.deck, reverse = True):
             if i > 10:
                 points += 10
             elif i == 1 and points + 11 <= 21:
                 points += 11
+                ace += 1
             else:
                 points += i
+                if points > 21 and ace >= 1: #Double Ace fix
+                    points -= 10
         return  points
 
     def changeState(self,state):
@@ -48,6 +52,9 @@ class Player():
 
     def withdrawBet(self,amount):
         self.balance -= amount
+
+    def clearDeck(self):
+        self.deck = []
 
 def createCards():
     cards = list(range(1,14)) * 4
@@ -85,8 +92,7 @@ def cardsName(card):
         8:'Eight', 9:'Nine', 10:'Ten', 11:'Jack',12:'Queen',13:'King'}
     return names[card]
 
-def game():
-    #Start of the game
+def createGame():
     players=[] #Store objects
     answer = 1
     initialBet = input('What is the initial bet? ')
@@ -98,7 +104,10 @@ def game():
             print('The table is complete, no more players admited')
             break
         answer = input('Do you want to add another player? ')
-    cards = createCards()
+    return players,Dealer
+
+def game(players, Dealer):
+    cards = createCards() #New deck pf cards
 
     #Dealer starts taking a card face up
     result = pickCard(cards)
@@ -107,7 +116,7 @@ def game():
     points = Dealer.addCard(result['card'])
 
     for player in players:
-        #Turn of player: 0.Two Cards 1.Bet 2.Pick 3.Points
+        #Turn of player:
         counter = 2
         print('\n---',player.name,'is playing now', '---\n',sep=' ')
         result = pickCard(cards)
@@ -132,7 +141,8 @@ def game():
             if checkPoints(points, counter, player) == -1:
                 if decision in ['d','double','Double']:
                     player.doubleBet()
-                    break
+                break
+            if decision in ['d','double','Double']:
                 break
             decision = input('You can: Hit, Stand or Double: ')
     #Dealer finishes his hand
@@ -141,7 +151,7 @@ def game():
     for player in players:
         situation += [player.state]
     if 'playing' not in situation and 'blackjack' not in situation:
-        print('Dealer has won')
+        print('Dealer has won everybody busted')
         #Add withdraws to every player
         for player in players:
             player.withdrawBet(player.bet)
@@ -229,7 +239,14 @@ def game():
     print('\n---','Balance of the game','---\n',sep=' ')
     for player in players + [Dealer]:
         print(player.name, 'has', player.balance,sep=' ')
+        player.clearDeck()
 
 def main():
-    game()
+    players, Dealer = createGame()
+    answer = 'again'
+    while answer in ['again', 'Again','a']:
+        game(players, Dealer)
+        answer = input('Do you want to play again, reset or close? ')
+    if answer in ['reset','r','Reset']:
+        main()
 main()
