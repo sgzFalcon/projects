@@ -8,13 +8,16 @@ import random
 
 positiveAnswers = [1, 'yes', 'Yes', 'y', 'si', 'sí']
 
+positiveDecisions = ['Hit','hit','h','double','Double','d']
+
 class Player():
     """docstring for player."""
-    def __init__(self, name, balance):
+    def __init__(self, name, balance, bet):
         self.name = name
         self.deck = []
-        self.balance = balance
+        self.balance = int(balance)
         self.state = 'playing'
+        self.bet = int(bet)
 
     def addCard(self,card):
         self.deck += [card]
@@ -22,7 +25,7 @@ class Player():
 
     def totalPoints(self):
         points = 0
-        for i in self.deck:
+        for i in sorted(self.deck, reverse = True):
             if i > 10:
                 points += 10
             elif i == 1 and points + 11 <= 21:
@@ -33,7 +36,18 @@ class Player():
 
     def changeState(self,state):
         self.state = state
-    #Methods for adding and withdrawing balance
+
+    def doubleBet(self):
+        self.bet += self.bet
+
+    def payBet(self,amount):
+        if self.totalPoints() == 21:
+            self.balance += amount * 2
+        else:
+            self.balance += amount
+
+    def withdrawBet(self,amount):
+        self.balance -= amount
 
 def createCards():
     cards = list(range(1,14)) * 4
@@ -45,9 +59,10 @@ def pickCard(cards):
     cards.pop(index)
     return {'cards':cards, 'card':card}
 
-def createPlayer():
+def createPlayer(initialBet):
     name = input('Introduce your name: ')
-    player = Player(name.capitalize(), balance=10)
+    balance = input('How much do you have to play? ')
+    player = Player(name.capitalize(), balance,initialBet)
     return player
 
 def checkPoints(points, counter, player):
@@ -70,12 +85,14 @@ def cardsName(card):
         8:'Eight', 9:'Nine', 10:'Ten', 11:'Jack',12:'Queen',13:'King'}
     return names[card]
 
-def main():
+def game():
+    #Start of the game
     players=[] #Store objects
     answer = 1
-    Dealer = Player('Dealer', balance=100) #Create dealer
+    initialBet = input('What is the initial bet? ')
+    Dealer = Player('Dealer', 1000,initialBet) #Create dealer
     while answer in positiveAnswers:
-        players += [createPlayer()]
+        players += [createPlayer(initialBet)]
         print('There is/are', len(players),'player(s).','\n', sep=' ')
         if len(players) == 6:
             print('The table is complete, no more players admited')
@@ -104,16 +121,20 @@ def main():
             cardsName(result['card']),sep=' ')
         if checkPoints(points, counter, player) == -1:
             continue
-        moreCards = input('Do you want another card? ')
-        while moreCards in positiveAnswers:
+        decision = input('You can: Hit, Stand or Double: ')
+        while decision in positiveDecisions:
             counter += 1
             result = pickCard(cards)
             cards = result['cards']
             print('Your card is:',cardsName(result['card']),sep=' ')
             points = player.addCard(result['card'])
+            #Add if for double situation (bet and break)
             if checkPoints(points, counter, player) == -1:
+                if decision in ['d','double','Double']:
+                    player.doubleBet()
+                    break
                 break
-            moreCards = input('Do you want another card? ')
+            decision = input('You can: Hit, Stand or Double: ')
     #Dealer finishes his hand
     print('\n--- Dealer is playing now', '---\n',sep=' ')
     situation = []
@@ -122,6 +143,10 @@ def main():
     if 'playing' not in situation and 'blackjack' not in situation:
         print('Dealer has won')
         #Add withdraws to every player
+        for player in players:
+            player.withdrawBet(player.bet)
+            Dealer.payBet(player.bet)
+            print(player.name,'lost',player.bet,sep=' ')
     else:
         result = pickCard(cards)
         cards = result['cards']
@@ -132,6 +157,11 @@ def main():
         if Dealer.state == 'blackjack':
             print('Dealer has won with a Blackjack')
             #Add withdraws to every player
+            for player in players:
+                player.withdrawBet(player.bet)
+                Dealer.payBet(player.bet)
+                print(player.name,'lost',player.bet,sep=' ')
+
         elif 'playing' in situation:
             while dealerspoints < 17:
                 result = pickCard(cards)
@@ -146,20 +176,60 @@ def main():
                     if dealerspoints > player.totalPoints():
                         print('Dealer has won', player.name, sep=' ')
                         #Add withdraws
+                        player.withdrawBet(player.bet)
+                        Dealer.payBet(player.bet)
+                        print(player.name,'lost',player.bet,sep=' ')
                     elif player.state == 'exceed':
                         print('Dealer has won',player.name, sep=' ')
                         #Add withdraws
+                        player.withdrawBet(player.bet)
+                        Dealer.payBet(player.bet)
+                        print(player.name,'lost',player.bet,sep=' ')
                     elif dealerspoints < player.totalPoints():
                         print(player.name,'has won', Dealer.name, sep=' ')
                         #Add withdraws
+                        player.payBet(player.bet)
+                        if player.totalPoints() == 21:
+                            Dealer.withdrawBet(2 * player.bet)
+                            print(player.name,'won',2 * player.bet,sep=' ')
+                        else:
+                            Dealer.withdrawBet(player.bet)
+                            print(player.name,'won',player.bet,sep=' ')
                     else:
                         print(player.name,'\'s bet is returned')
 
             else:
-                print('Everybody win')
-                #Add withdraws
+                print('Dealer busted')
+                for player in players:
+                    if player.state != 'exceed':
+                        player.payBet(player.bet)
+                        if player.totalPoints() == 21:
+                            Dealer.withdrawBet(2 * player.bet)
+                            print(player.name,'won',2 * player.bet,sep=' ')
+                        else:
+                            Dealer.withdrawBet(player.bet)
+                            print(player.name,'won',player.bet,sep=' ')
+                    else:
+                        player.withdrawBet(player.bet)
+                        Dealer.payBet(player.bet)
+                        print(player.name,'lost',player.bet,sep=' ')
         else:
-            print('Dealer has lost')
-            #Add withdraws
+            print('Blackjack wins')
+            #Add withdraws Blackjack
+            for player in players:
+                if player.state == 'exceed':
+                    player.withdrawBet(player.bet)
+                    Dealer.payBet(player.bet)
+                    print(player.name,'lost',player.bet,sep=' ')
+                else:
+                    player.payBet(player.bet)
+                    Dealer.withdrawBet(2 * player.bet)
+                    print(player.name,'won',2 * player.bet,sep=' ')
 
+    print('\n---','Balance of the game','---\n',sep=' ')
+    for player in players + [Dealer]:
+        print(player.name, 'has', player.balance,sep=' ')
+
+def main():
+    game()
 main()
