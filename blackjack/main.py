@@ -53,8 +53,9 @@ class Player():
     def withdrawBet(self,amount):
         self.balance -= amount
 
-    def clearDeck(self):
+    def replay(self):
         self.deck = []
+        self.state = 'playing'
 
 def createCards():
     cards = list(range(1,14)) * 4
@@ -150,6 +151,7 @@ def game(players, Dealer):
     situation = []
     for player in players:
         situation += [player.state]
+
     if 'playing' not in situation and 'blackjack' not in situation:
         print('Dealer has won everybody busted')
         #Add withdraws to every player
@@ -239,7 +241,7 @@ def game(players, Dealer):
     print('\n---','Balance of the game','---\n',sep=' ')
     for player in players + [Dealer]:
         print(player.name, 'has', player.balance,sep=' ')
-        player.clearDeck()
+        player.replay()
 
 def main():
     players, Dealer = createGame()

@@ -6,7 +6,7 @@
 * Check points of a player against the dealer
 * Players can bet and have an account
 
-## Thing to do
+## Things to do
 
 * ~~Name of cards (Jack, Queen, King and Ace)~~ (Done)
 * ~~Check who has won~~ (Done)
@@ -22,3 +22,5 @@
 * ~~Busted when a card was received after an Ace~~ (Solved)
 * ~~Double Ace: When you received 2 Aces and have 21 points with just one of them
   you get busted~~ (Solved)
+* ~~After being busted in the first game player auto exceed the next match~~
+  (Solved)
