@@ -24,3 +24,6 @@
   you get busted~~ (Solved)
 * ~~After being busted in the first game player auto exceed the next match~~
   (Solved)
+* ~~Bet not doubled for not special cases~~ (Solved)
+* ~~Bet of players not reset when playing again~~ (Solved)
+* ~~When dealer has 21 and player a natural blackjack bet was returned~~ (Solved)

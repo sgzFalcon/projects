@@ -53,9 +53,10 @@ class Player():
     def withdrawBet(self,amount):
         self.balance -= amount
 
-    def replay(self):
+    def replay(self,bet):
         self.deck = []
         self.state = 'playing'
+        self.bet = int(bet)
 
 def createCards():
     cards = list(range(1,14)) * 4
@@ -139,9 +140,9 @@ def game(players, Dealer):
             print('Your card is:',cardsName(result['card']),sep=' ')
             points = player.addCard(result['card'])
             #Add if for double situation (bet and break)
+            if decision in ['d','double','Double']:
+                player.doubleBet()
             if checkPoints(points, counter, player) == -1:
-                if decision in ['d','double','Double']:
-                    player.doubleBet()
                 break
             if decision in ['d','double','Double']:
                 break
@@ -180,7 +181,7 @@ def game(players, Dealer):
                 cards = result['cards']
                 print('Dealer\'s card is:',cardsName(result['card']),sep=' ')
                 dealerspoints = Dealer.addCard(result['card'])
-                if checkPoints(dealerspoints, counter, Dealer) == -1:
+                if checkPoints(dealerspoints, 3, Dealer) == -1:
                     break
 
             if dealerspoints <= 21:
@@ -207,6 +208,10 @@ def game(players, Dealer):
                         else:
                             Dealer.withdrawBet(player.bet)
                             print(player.name,'won',player.bet,sep=' ')
+                    elif player.state == 'blackjack':
+                        player.payBet(player.bet)
+                        Dealer.withdrawBet(2 * player.bet)
+                        print(player.name,'won',2 * player.bet,sep=' ')
                     else:
                         print(player.name,'\'s bet is returned')
 
