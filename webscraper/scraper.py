@@ -1,9 +1,10 @@
-import os, requests, bs4
+import os, requests, bs4, webbrowser
 urlFile = open('url.txt')
 url = urlFile.read().rstrip('\n')
-contentType = input('Serie o película: ')
-title = input('Introduce el nombre: ')
+title = input('Introduce el nombre de la serie: ')
 titleC = title.capitalize()
+
+print('Buscando...')
 
 res = requests.get(url + 'secciones.php?sec=buscador&valor='+title.replace(' ', '+'))
 res.raise_for_status()
@@ -14,22 +15,17 @@ firstFilter = []
 secondFilter = []
 results = []
 
-if contentType in ['serie', 'Serie']:
-    season = input('Número de la temporada: ')
-    quality = input('Calidad (720p o en blanco): ')
-    for i in range(len(linkElems)):
-        if ((titleC or title) and 'Temporada') in linkElems[i].getText():
-            firstFilter += [linkElems[i]]
-    for i in range(len(firstFilter)):
-        if season in firstFilter[i].getText():
-            secondFilter += [firstFilter[i]]
-    for i in range(len(secondFilter)):
-        if quality in secondFilter[i].getText():
-            results += [secondFilter[i]]
-else:
-    for i in range(len(linkElems)):
-        if (titleC or title) in linkElems[i].getText():
-            results += [linkElems[i]]
+season = input('Número de la temporada: ')
+quality = input('Calidad (720p o en blanco): ')
+for i in range(len(linkElems)):
+    if ((titleC or title) and 'Temporada') in linkElems[i].getText():
+        firstFilter += [linkElems[i]]
+for i in range(len(firstFilter)):
+    if season in firstFilter[i].getText():
+        secondFilter += [firstFilter[i]]
+for i in range(len(secondFilter)):
+    if quality in secondFilter[i].getText():
+        results += [secondFilter[i]]
 
 #Priting results
 for i in range(len(results)):
@@ -37,10 +33,30 @@ for i in range(len(results)):
 
 #Selecting files to download
 if len(results) > 1:
-    selection = int(input('Indica el número del elemento deseado'))
+    selection = int(input('Indica el número del elemento deseado: '))
 elif len(results) == 1:
     selection = 1
 else:
     raise Exception('No se encontraron resultados')
+
+print('Descargando...')
+
 pageElem = requests.get(url + results[selection -1].get('href'))
 pageElem.raise_for_status()
+soup2 = bs4.BeautifulSoup(pageElem.text, 'html.parser')
+episodeElems = soup2.select('td[bgcolor="#C8DAC8"] a')
+
+for index, i in enumerate(range(len(episodeElems))):
+    finalPage = requests.get(url + episodeElems[i].get('href'))
+    soup3 = bs4.BeautifulSoup(finalPage.text, 'html.parser')
+    downloadLink = soup3.select('table[width="440"] a[style="font-size:12px;"]')
+    downPage = requests.get(url + downloadLink[0].get('href'))
+    soup4 = bs4.BeautifulSoup(downPage.text, 'html.parser')
+    hereLink = soup4.select('table[width="550"] a')
+    herePage = requests.get(hereLink[0].get('href'))
+    #Save path
+    downloadFile = open(os.path.join('D:','Descargas',os.path.basename(hereLink[0].get('href'))),'wb')
+    for block in herePage.iter_content(100000):
+        downloadFile.write(block)
+    print(((index+1)*100)//len(episodeElems),'%',end=' ', flush=True)
+print('Descarga completada')
