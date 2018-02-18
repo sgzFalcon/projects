@@ -1,4 +1,4 @@
-import os, requests, bs4, webbrowser
+import os, requests, bs4, webbrowser, sys
 urlFile = open('url.txt')
 url = urlFile.read().rstrip('\n')
 title = input('Introduce el nombre de la serie: ')
@@ -21,7 +21,7 @@ for i in range(len(linkElems)):
     if ((titleC or title) and 'Temporada') in linkElems[i].getText():
         firstFilter += [linkElems[i]]
 for i in range(len(firstFilter)):
-    if season in firstFilter[i].getText():
+    if season+'ª' in firstFilter[i].getText():
         secondFilter += [firstFilter[i]]
 for i in range(len(secondFilter)):
     if quality in secondFilter[i].getText():
@@ -46,17 +46,38 @@ pageElem.raise_for_status()
 soup2 = bs4.BeautifulSoup(pageElem.text, 'html.parser')
 episodeElems = soup2.select('td[bgcolor="#C8DAC8"] a')
 
-for index, i in enumerate(range(len(episodeElems))):
-    finalPage = requests.get(url + episodeElems[i].get('href'))
-    soup3 = bs4.BeautifulSoup(finalPage.text, 'html.parser')
-    downloadLink = soup3.select('table[width="440"] a[style="font-size:12px;"]')
-    downPage = requests.get(url + downloadLink[0].get('href'))
-    soup4 = bs4.BeautifulSoup(downPage.text, 'html.parser')
-    hereLink = soup4.select('table[width="550"] a')
-    herePage = requests.get(hereLink[0].get('href'))
-    #Save path
-    downloadFile = open(os.path.join('D:','Descargas',os.path.basename(hereLink[0].get('href'))),'wb')
-    for block in herePage.iter_content(100000):
-        downloadFile.write(block)
-    print(((index+1)*100)//len(episodeElems),'%',end=' ', flush=True)
-print('Descarga completada')
+def download(url, episodeElems, attempt):
+    attempt += 1
+    if attempt == 3:
+        print('Inténtalo de nuevo más tarde')
+        sys.exit()
+    for index, i in enumerate(range(len(episodeElems))):
+        finalPage = requests.get(url + episodeElems[i].get('href'))
+        if finalPage.status_code != 200:
+            print('Error', finalPage.status_code)
+            print('Probando de nuevo...')
+            download(url, episodeElems, attempt)
+        soup3 = bs4.BeautifulSoup(finalPage.text, 'html.parser')
+        downloadLink = soup3.select('table[width="440"] a[style="font-size:12px;"]')
+        downPage = requests.get(url + downloadLink[0].get('href'))
+        if downPage.status_code != 200:
+            print('Error', downPage.status_code)
+            print('Probando de nuevo...')
+            download(url, episodeElems, attempt)
+        soup4 = bs4.BeautifulSoup(downPage.text, 'html.parser')
+        hereLink = soup4.select('table[width="550"] a')
+        herePage = requests.get(url + hereLink[0].get('href'))
+        if herePage.status_code != 200:
+            print('Error', herePage.status_code)
+            print('Probando de nuevo...')
+            download(url, episodeElems, attempt)
+        #Save path
+        downloadFile = open(os.path.join('D:','Descargas',
+            os.path.basename(hereLink[0].get('href'))),'wb')
+        for block in herePage.iter_content(100000):
+            downloadFile.write(block)
+        print(((index+1)*100)//len(episodeElems),'%',end=' ', flush=True)
+    print('Descarga completada')
+
+attempt = 0
+download(url, episodeElems, attempt)
