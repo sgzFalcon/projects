@@ -76,7 +76,7 @@ def download(url, episodeElems, attempt):
             os.path.basename(hereLink[0].get('href'))),'wb')
         for block in herePage.iter_content(100000):
             downloadFile.write(block)
-        print(((index+1)*100)//len(episodeElems),'%',end=' ', flush=True)
+        print(((index+1)*100)//len(episodeElems),'%',end="\r", flush=True)
     print('Descarga completada')
 
 attempt = 0
