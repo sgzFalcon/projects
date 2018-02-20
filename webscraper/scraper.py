@@ -1,4 +1,4 @@
-import os, requests, bs4, webbrowser, sys
+import os, requests, bs4, webbrowser, sys, subprocess
 urlFile = open('url.txt')
 url = urlFile.read().rstrip('\n')
 title = input('Introduce el nombre de la serie: ')
@@ -47,6 +47,7 @@ soup2 = bs4.BeautifulSoup(pageElem.text, 'html.parser')
 episodeElems = soup2.select('td[bgcolor="#C8DAC8"] a')
 
 def download(url, episodeElems, attempt):
+    files = []
     attempt += 1
     if attempt == 3:
         print('Inténtalo de nuevo más tarde')
@@ -72,12 +73,21 @@ def download(url, episodeElems, attempt):
             print('Probando de nuevo...')
             download(url, episodeElems, attempt)
         #Save path
-        downloadFile = open(os.path.join('D:','Descargas',
-            os.path.basename(hereLink[0].get('href'))),'wb')
+        idfile = os.path.join('D:','Descargas',
+            os.path.basename(hereLink[0].get('href')))
+        downloadFile = open(idfile,'wb')
         for block in herePage.iter_content(100000):
             downloadFile.write(block)
         print(((index+1)*100)//len(episodeElems),'%',end="\r", flush=True)
+        files += [idfile]
     print('Descarga completada')
+    print('Abriendo archivos...')
+    return files
+
+def openFiles(files):
+    for idfile in files:
+        subprocess.Popen(['start', idfile], shell=True)
 
 attempt = 0
-download(url, episodeElems, attempt)
+files = download(url, episodeElems, attempt)
+openFiles(files)
