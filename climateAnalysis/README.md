@@ -9,7 +9,7 @@ The climate data (mean annual temperature) is from a group of stations located i
 
 ![alt text][logo]
 
-[logo]: https://es.wikipedia.org/wiki/Cuenca_hidrogr%C3%A1fica_del_Ebro#/media/File:SpainEbroBasin.png "Spain Ebro Basin"
+[logo]: https://upload.wikimedia.org/wikipedia/commons/d/d2/SpainEbroBasin.png "Spain Ebro Basin"
 
 The objective of this analysis is to identify sources of variability not caused by climate as changes in the equipment or the methods of acquiring the data. Those will lead to discontinuities in the series.
 
