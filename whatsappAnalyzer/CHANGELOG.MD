@@ -2,11 +2,24 @@
 Detailed changes for commits.
 ## Unreleased
 - Redistribute plots for better readability.
-- Natural Language Processing.
-- Auto highlights of data.
+- Auto highlights of data (award system).
 - Hours of the day with more activity.
 - Mentions of participants.
 - Read files with 12 hour format.
+- Complete support for `es` and `fr`.
+## 0.0.3 - 2018-03-19
+### Added
+- Natural Language Processing plots:
+  - Most used words.
+  - Most used emoji.
+- Language auto detection (only supports `en` and `es`).
+- Save figure as `png` with `-s` argument (figure is save in the same directory as the chat file loaded).
+### Fixed
+- Overlapping for anonymized names in +12 members groups.
+- Unordered labels when using anonymized option.
+### Known bugs
+- Stacked emojis interpreted as one new unknown emoji.
+- Labels for emoji not displayed properly.
 ## 0.0.2 - 2018-03-18
 ### Added
 - General group data.
