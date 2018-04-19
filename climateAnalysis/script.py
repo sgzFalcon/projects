@@ -4,11 +4,15 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import scipy.stats
 import sys
+import argparse
 
-def solow(RSS1,RSS2,n):
+def solow(RSS1,RSS2,n, args):
+    if args.verbose:
+        print('Solow: ',((RSS1 - RSS2)/3)/(RSS2/(n-4)), scipy.stats.f.ppf(0.95,3,n-4))
+
     return ((RSS1 - RSS2)/3)/(RSS2/(n-4)) > scipy.stats.f.ppf(0.95,3,n-4) 
     #Alpha = 0.05
-def Ztest(sub1, sub2):
+def Ztest(sub1, sub2, args):
     X1 = np.mean(sub1)
     X2 = np.mean(sub2)
     sd1 = np.std(sub1)
@@ -17,6 +21,8 @@ def Ztest(sub1, sub2):
     n2 = len(sub2)
     pooledSE = np.sqrt(sd1**2/n1 + sd2**2/n2)
     z = (X1 - X2)/pooledSE
+    if args.verbose:
+        print('Ztest: ',np.abs(z), np.abs(scipy.stats.norm.ppf(0.025)))
     return np.abs(z) > np.abs(scipy.stats.norm.ppf(0.025)) 
     #Bilateral test: Alpha = 0.05
 
@@ -35,10 +41,10 @@ def load_data():
     stations = pd.concat(station.values(),axis=1)
     return stations, stationsID
 
-def discontinuity(OriRefDF, start, end):
+def discontinuity(OriRefDF, start, end, args):
     _, RSS1, _, _, _ = np.polyfit(OriRefDF.index[start:end],OriRefDF['diff'].iloc[start:end],1,full=True)
     OriRefDF['RSS2'] = RSS1[0]
-    for point in range(start + 5,end-start-5):
+    for point in range(start + 5,end-start-4):
         sub1 = OriRefDF['diff'].iloc[start:point]
         sub2 = OriRefDF['diff'].iloc[point:end]
         _, RSSs1,_,_,_ = np.polyfit(OriRefDF.index[start:point],sub1,1,full=True)
@@ -48,46 +54,66 @@ def discontinuity(OriRefDF, start, end):
         OriRefDF['RSS2'].iloc[point] = RSSs1[0] + RSSs2[0]
     point = OriRefDF.index.get_loc(OriRefDF['RSS2'].idxmin())
     RSS2 = OriRefDF['RSS2'].min()
-
-    if solow(RSS1,RSS2,end-start):
+    if args.verbose:
+        print('Possible discontinuity in '+ str(1956 + point))
+    if solow(RSS1,RSS2,end-start, args):
         sub1 = OriRefDF['diff'].iloc[start:point]
         sub2 = OriRefDF['diff'].iloc[point:end]
-        if Ztest(sub1,sub2):
+        if Ztest(sub1,sub2, args):
             return True, point
         else:
-            return False, 0
+            return False, point
     else:
-        return False, 0
+        return False, point
 
-def search_discont(OriRefDF):
+def search_discont(OriRefDF, args):
     points=[]
-    value, point = discontinuity(OriRefDF,0,OriRefDF.shape[0]-1)
+    value, point = discontinuity(OriRefDF,0,OriRefDF.shape[0]-1, args)
     if value == True:
         points.append(point)
         if points[0] <= 9:
-            value, point = discontinuity(OriRefDF,points[0],OriRefDF.shape[0]-1)
+            value, point = discontinuity(OriRefDF,points[0],OriRefDF.shape[0]-1, args)
             if value == True:
                 points.append(point)
         elif points[0] <= OriRefDF.shape[0] - 10:
-            value, point = discontinuity(OriRefDF,0,points[0])
+            value, point = discontinuity(OriRefDF,0,points[0], args)
             if value == True:
                 points.append(point)
-            value, point = discontinuity(OriRefDF,points[0],OriRefDF.shape[0]-1)
+            value, point = discontinuity(OriRefDF,points[0],OriRefDF.shape[0]-1, args)
             if value == True:
                 points.append(point)
         elif points[0] >= OriRefDF.shape[0] - 10:
-            value, point = discontinuity(OriRefDF,0,points[0])
+            value, point = discontinuity(OriRefDF,0,points[0], args)
             if value == True:
                 points.append(point)
     else:
+        ppoint = point
+        if ppoint <= 9:
+            value, point = discontinuity(OriRefDF,ppoint,OriRefDF.shape[0]-1, args)
+            if value == True:
+                points.append(point)
+        elif ppoint <= OriRefDF.shape[0] - 10:
+            value, point = discontinuity(OriRefDF,0,ppoint, args)
+            if value == True:
+                points.append(point)
+            value, point = discontinuity(OriRefDF,ppoint,OriRefDF.shape[0]-1, args)
+            if value == True:
+                points.append(point)
+        elif ppoint >= OriRefDF.shape[0] - 10:
+            value, point = discontinuity(OriRefDF,0,ppoint, args)
+            if value == True:
+                points.append(point)
+    if points == []:
         print('No discontinuities found.')
         return 0
-    print('Discontinuities in: ')
-    for point in points:
-        print('\t'+ str(1956 + point))
-    return points
+    else:
+        print('Discontinuities in: ')
+        for point in points:
+            print('\t'+ str(1956 + point))
+        return points
+    
 
-def fix_plot_data(OriRefDF, points, origin):
+def fix_plot_data(OriRefDF, points, origin, args):
     OriRefDF['Fixed']=OriRefDF['Original']
     means = []
     points.append(OriRefDF.shape[0]-1)
@@ -115,23 +141,35 @@ def fix_plot_data(OriRefDF, points, origin):
     plt.xlabel('Año')
     plt.ylabel('Temperatura (ºC)')
     plt.show()
-    ask = input('Save figure? (WARNING: This could overwrite some files) ')
-    if ask.capitalize() in ['Yes','Si']:
+    if args.save:
         plt.savefig('station_'+origin+'.png')
         print('Figure saved as station_%s.png' % (origin))
     else:
-        print('Figure not saved.')
+        ask = input('Save figure? (WARNING: This could overwrite some files) ')
+        if ask.capitalize() == 'Yes':
+            plt.savefig('station_'+origin+'.png')
+            print('Figure saved as station_%s.png' % (origin))
+        else:
+            print('Figure not saved.')
 
 def main():
 
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--station", help="ID of the station to study")
+    parser.add_argument("-s","--save", action='store_true', help="Save the figure created")
+    parser.add_argument("-v","--verbose", action='store_true', help="Output statistical values")
+    args = parser.parse_args()
+
     stations, stationsID = load_data()
 
-    if len(sys.argv) > 1:
-        origin = sys.argv[1]
+    if args.station != None:
+        origin = args.station
     else:
         print(stationsID[['id','name']])
         origin = input('Origin (ID): ')
     oriSeries = stations[origin]
+
+    print('Loading data... Can take up to 60s the first time.')
 
     ydiff ={}
     for col in stations.columns[:]:
@@ -159,9 +197,10 @@ def main():
     OriRefDF['diff']=OriRefDF['Original'] - OriRefDF['Reference']
 
 
-    points = search_discont(OriRefDF)
+    points = search_discont(OriRefDF, args)
 
-    fix_plot_data(OriRefDF, points, origin)
+    if points != 0:
+        fix_plot_data(OriRefDF, points, origin, args)
 
 
 if __name__ == '__main__':

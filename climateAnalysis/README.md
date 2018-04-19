@@ -18,3 +18,10 @@ With the help of close stations we can correct our problem series, so the first 
 Then we divide the series in two sub-series and look for the lower RSS (residual sum) and we compare it against a sample statistic (F-distribution & Z-test).
 
 Now if we have found a real discontinuity (we should keep subdividing the series to find other discontinuities) we take the most recent data as the good one and use the reference series to improve the older data.
+
+# Version Notes:
+
+- **Critical Fix:** Script no checks the last possible year.
+- Now it will keep looking for discontinuities even if the first one wasn't a real one.
+- Improved verbosity.
+
