@@ -1,7 +1,13 @@
 import os, requests, bs4, webbrowser, sys, subprocess
 urlFile = open('url.txt')
 url = urlFile.read().rstrip('\n')
-title = input('Introduce el nombre de la serie: ')
+kind = input('Serie o película: ')
+if kind.capitalize() == 'Serie':
+    title = input('Introduce el nombre de la serie: ')
+else:
+    print('No es posible descargar películas en esta versión')
+    sys.exit()
+    title = input('Introduce el nombre de la película: ')
 titleC = title.capitalize()
 
 print('Buscando...')
@@ -14,18 +20,22 @@ linkElems = soup.select('tr[height="22"] a')
 firstFilter = []
 secondFilter = []
 results = []
-
-season = input('Número de la temporada: ')
-quality = input('Calidad (720p o en blanco): ')
-for i in range(len(linkElems)):
-    if ((titleC or title) and 'Temporada') in linkElems[i].getText():
-        firstFilter += [linkElems[i]]
-for i in range(len(firstFilter)):
-    if season+'ª' in firstFilter[i].getText():
-        secondFilter += [firstFilter[i]]
-for i in range(len(secondFilter)):
-    if quality in secondFilter[i].getText():
-        results += [secondFilter[i]]
+if kind.capitalize() == 'Serie':
+    season = input('Número de la temporada: ')
+    quality = input('Calidad (720p o en blanco): ')
+    for i in range(len(linkElems)):
+        if ((titleC or title) and 'Temporada') in linkElems[i].getText():
+            firstFilter += [linkElems[i]]
+    for i in range(len(firstFilter)):
+        if season+'ª' in firstFilter[i].getText():
+            secondFilter += [firstFilter[i]]
+    for i in range(len(secondFilter)):
+        if quality in secondFilter[i].getText():
+            results += [secondFilter[i]]
+else:
+    for i in range(len(linkElems)):
+        if (titleC or title) in linkElems[i].getText():
+            results += [linkElems[i]]
 
 #Priting results
 for i in range(len(results)):
@@ -81,10 +91,10 @@ def download(url, episodeElems, attempt):
         print(((index+1)*100)//len(episodeElems),'%',end="\r", flush=True)
         files += [idfile]
     print('Descarga completada')
-    print('Abriendo archivos...')
     return files
 
 def openFiles(files):
+    print('Abriendo archivos...')
     for idfile in files:
         subprocess.Popen(['start', idfile], shell=True)
 
