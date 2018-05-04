@@ -77,7 +77,13 @@ def check_answer(data, q, correctAnswer, answerOptions, mode):
         print('\n Correct!')
         if mode == 'advanced':
             data[q][2] += 1
-
+            f = data[q][2]**2/data[q][3]
+            if f > 50:
+                print('You won\'t forget it!')
+            elif f > 25:
+                print('You already know it!')
+            elif f > 10:
+                print('You are getting it!')
     else:
         print('\n Wrong! The answer was: ', correctAnswer)
 

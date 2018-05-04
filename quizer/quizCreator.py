@@ -12,6 +12,7 @@ if mode.lower() == 'create':
     jsonFile = 'data/'+workingfile+'.json'
     with open(jsonFile,'w') as dFile:
         json.dump({},dFile)
+        print(workingfile+'.json ','has been created.')
 
 else:
     jsonFile = 'data/'+workingfile+'.json'
@@ -23,6 +24,7 @@ else:
 
 with open(jsonFile) as dFile:
     data = json.load(dFile)
+    print('\t',workingfile+'.json','loaded succesfully.')
 
 categories =[]
 for v in data.values():
