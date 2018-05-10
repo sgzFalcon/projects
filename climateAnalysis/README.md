@@ -21,7 +21,10 @@ Now if we have found a real discontinuity (we should keep subdividing the series
 
 # Version Notes:
 
-- **Critical Fix:** Script no checks the last possible year.
+- **Critical Fix:** Script now checks the last possible year.
 - Now it will keep looking for discontinuities even if the first one wasn't a real one.
 - Improved verbosity.
+
+- Known problem: Script won't find more than 2 discontinuities.
+- Removed jupyter notebook in favor of script.py
 
